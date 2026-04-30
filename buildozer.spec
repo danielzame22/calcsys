@@ -11,7 +11,7 @@ source.include_exts = py,png,jpg,kv,atlas,json
 source.include_patterns = data.json
 
 # Requirements
-requirements = python3,kivy==2.3.0,sympy
+requirements = python3,kivy==2.3.0,mpmath,sympy
 
 # Android
 android.permissions = INTERNET
