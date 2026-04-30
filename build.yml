@@ -1,0 +1,49 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:  # permite correrlo manualmente con un botón
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar dependencias del sistema
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y \
+            python3-pip python3-dev build-essential \
+            git openjdk-17-jdk unzip zip \
+            libffi-dev libssl-dev autoconf libtool \
+            pkg-config zlib1g-dev libncurses5-dev \
+            libncursesw5-dev cmake
+
+      - name: Instalar Python deps
+        run: |
+          pip3 install --upgrade pip
+          pip3 install buildozer cython==0.29.33
+
+      - name: Cache buildozer
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            .buildozer
+          key: buildozer-${{ hashFiles('buildozer.spec') }}
+          restore-keys: buildozer-
+
+      - name: Compilar APK
+        run: |
+          buildozer -v android debug
+
+      - name: Subir APK como artefacto
+        uses: actions/upload-artifact@v4
+        with:
+          name: calcsys-apk
+          path: bin/*.apk
+          retention-days: 30
