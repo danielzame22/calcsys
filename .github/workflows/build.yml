@@ -32,27 +32,27 @@ jobs:
           pip install --upgrade pip
           pip install buildozer==1.5.0 cython==0.29.33
 
-      - name: Preparar Android SDK en ruta que espera buildozer
+      - name: Copiar sympy y mpmath al proyecto
+        run: |
+          pip install sympy mpmath --target=$GITHUB_WORKSPACE/libs
+          # Solo copiamos los paquetes puros, sin metadata
+          cp -r $GITHUB_WORKSPACE/libs/sympy $GITHUB_WORKSPACE/sympy
+          cp -r $GITHUB_WORKSPACE/libs/mpmath $GITHUB_WORKSPACE/mpmath
+          rm -rf $GITHUB_WORKSPACE/libs
+
+      - name: Preparar Android SDK
         run: |
           SDK_DIR=$HOME/.buildozer/android/platform/android-sdk
           TOOLS_DIR=$SDK_DIR/cmdline-tools/latest
           mkdir -p $TOOLS_DIR
           mkdir -p $SDK_DIR/tools/bin
-
-          # Descargar command line tools
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdtools.zip
           unzip -q cmdtools.zip -d /tmp/cmdtools
           cp -r /tmp/cmdtools/cmdline-tools/* $TOOLS_DIR/
-
-          # Crear symlink donde buildozer busca sdkmanager
           ln -sf $TOOLS_DIR/bin/sdkmanager $SDK_DIR/tools/bin/sdkmanager
-
-          # Aceptar licencias e instalar plataformas
           export PATH=$PATH:$TOOLS_DIR/bin
           yes | sdkmanager --sdk_root=$SDK_DIR --licenses
           sdkmanager --sdk_root=$SDK_DIR "platform-tools" "platforms;android-33" "build-tools;33.0.2"
-
-          # Crear licencias también en formato que p4a espera
           mkdir -p $SDK_DIR/licenses
           echo -e "\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > $SDK_DIR/licenses/android-sdk-license
           echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > $SDK_DIR/licenses/android-sdk-preview-license
